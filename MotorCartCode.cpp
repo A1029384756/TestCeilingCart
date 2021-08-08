@@ -72,7 +72,7 @@ void findDistance()
   digitalWrite(trigPinRear, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPinFront, LOW);
-  digitalWrite(trigPinFront, LOW);
+  digitalWrite(trigPinRear, LOW);
 
   //Recieve Output Pulse
   frontDist = int(pulseIn(0, HIGH) * 0.034 / 2);
