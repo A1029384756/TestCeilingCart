@@ -23,4 +23,4 @@ void readRemote()
             Serial.println(results.value);
         }
     }
-    
+}
