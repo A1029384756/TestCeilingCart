@@ -33,6 +33,7 @@ void setup()
     pinMode(echoPinFront, INPUT);
     pinMode(echoPinRear, INPUT);
     
+    //Open serial monitor and start ir receiver
     Serial.begin(9600);
     
     irrecv.enableIRIn();
@@ -40,10 +41,13 @@ void setup()
 
 void loop()
 {
+    //Run distance sensor code
     findDistance();
     
+    //Set motor speed with the remote readout
     movement += speedMultiplier * readRemote();
     
+    //Find cart relation to motor borders and set movement speed caps
     if (frontDist > borderDist && rearDist > borderDist)
     {
         movement = setMaxMin(movement, 2 * speedMultiplier, -2 * speedMultiplier);
@@ -81,6 +85,7 @@ void findDistance()
 
 void runMotor(int speed)
 {
+    //Set motor speed and run steppers
     Stepper1.setSpeed(speed);
     Stepper2.setSpeed(speed);
     if (speed != 0)
@@ -95,8 +100,10 @@ void runMotor(int speed)
 
 int readRemote()
 {
+    //Run decode operation on ir reciever
     if(irrecv.decode(&results))
     {
+        //Return results based on hex code
         if(results.value == 0xFD10EF)
         {
             return -1;
@@ -116,6 +123,7 @@ int readRemote()
 
 int setMaxMin(int x, int max, int min)
 {
+    //Set motor max and min speed based on input
     if (x > max)
     {
         return max;
