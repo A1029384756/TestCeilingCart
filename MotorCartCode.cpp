@@ -83,10 +83,13 @@ void runMotor(int speed)
 {
     Stepper1.setSpeed(speed);
     Stepper2.setSpeed(speed);
-    for (int i = 0; i < 10; i++)
+    if (speed != 0)
     {
-        Stepper1.step(1);
-        Stepper2.step(1);
+        for (int i = 0; i < 10; i++)
+        {
+            Stepper1.step(1);
+            Stepper2.step(1);
+        }
     }
 }
 
