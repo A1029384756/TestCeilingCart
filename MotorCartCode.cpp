@@ -47,6 +47,8 @@ void loop()
     //Set motor speed with the remote readout
     movement += speedMultiplier * readRemote();
     
+    Serial.println(movement);
+    
     //Find cart relation to motor borders and set movement speed caps
     if (frontDist > borderDist && rearDist > borderDist)
     {
@@ -100,25 +102,30 @@ void runMotor(int speed)
 
 int readRemote()
 {
+    int output = 0;
     //Run decode operation on ir reciever
-    if(irrecv.decode(&results))
+    if(irrecv.decode())
     {
+        int value = results.value;
+        Serial.println(value);
         //Return results based on hex code
-        if(results.value == 0xFD10EF)
+        switch(value)
         {
-            return -1;
+            case 1048065:
+            output--;
+            break;
+            
+            case 1046790:
+            return ++;
+            break;
+            
+            default:
+            break;
         }
         
-        else if (results.value == 0xFD50AF)
-        {
-            return 1;
-        }
-        
-        else
-        {
-            return 0;
-        }
+        irrecv.resume();
     }
+    return output;
 }
 
 int setMaxMin(int x, int max, int min)
