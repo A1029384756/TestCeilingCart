@@ -111,12 +111,12 @@ int readRemote()
         //Return results based on hex code
         switch(value)
         {
-            case 1048065:
+            case 0xFFE01:
             output--;
             break;
             
-            case 1046790:
-            return ++;
+            case 0xFF906:
+            output++;
             break;
             
             default:
