@@ -80,7 +80,7 @@ void findDistance()
     digitalWrite(trigPinFront, LOW);
     digitalWrite(trigPinRear, LOW);
     
-    //Recieve Output Pulse
+    //Receive Output Pulse
     frontDist = int(pulseIn(0, HIGH) * 0.034 / 2);
     rearDist = int(pulseIn(1, HIGH) * 0.034 / 2);
 }
@@ -104,7 +104,7 @@ int readRemote()
 {
     int output = 0;
     //Run decode operation on ir reciever
-    if(irrecv.decode())
+    if(irrecv.decode(&results))
     {
         int value = results.value;
         Serial.println(value);
