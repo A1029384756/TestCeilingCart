@@ -20,6 +20,11 @@ long frontDist, rearDist;
 int borderDist = 6;
 int maxSpeed = 3;
 
+//Protothread Initialization
+pt ptFindDistance;
+pt ptRunMotor;
+pt ptReadRemote;
+
 void setup()
 {
     PT_INIT(&ptFindDistance);
@@ -50,7 +55,6 @@ void loop()
     PT_SCHEDULE(findDistance(&ptFindDistance));
 }
 
-pt ptFindDistance;
 int findDistance(struct pt* pt)
 {
     PT_BEGIN(pt);
@@ -76,7 +80,6 @@ int findDistance(struct pt* pt)
     PT_END(pt);
 }
 
-pt ptRunMotor;
 int runMotor(struct pt* pt)
 {
     PT_begin(pt);
@@ -94,7 +97,6 @@ int runMotor(struct pt* pt)
     PT_END(pt);
 }
 
-pt ptReadRemote;
 int readRemote(struct pt* pt)
 {
     PT_BEGIN(pt);
