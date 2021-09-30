@@ -71,7 +71,7 @@ int findDistance(struct pt* pt)
         frontDist = pulseIn(echoPinFront, HIGH)/29/2;
         rearDist = pulseIn(echoPinRear, HIGH)/29/2;
         
-        PT_SLEEP(100);
+        PT_SLEEP(pt, 100);
     }
     PT_END(pt);
 }
