@@ -15,122 +15,14 @@ IRrecv  irrecv(6);
 decode_results results;
 
 //Data Fields & Constants
-int speed;
-long frontDist, rearDist;
+int speed = 0;
 int borderDist = 6;
-int maxSpeed = 3;
+long frontDist, rearDist;
 
-//Protothread Initialization
-pt ptFindDistance;
-pt ptRunMotor;
-pt ptReadRemote;
-
-void setup()
-{
-    PT_INIT(&ptFindDistance);
-    PT_INIT(&ptRunMotor);
-    PT_INIT(&ptReadRemote);
-    
-    Stepper1.setSpeed(0);
-    
-    //Set Pin Modes
-    pinMode(trigPinFront, OUTPUT);
-    pinMode(trigPinRear, OUTPUT);
-    pinMode(echoPinFront, INPUT);
-    pinMode(echoPinRear, INPUT);
-    
-    //Open serial monitor and start ir receiver
-    Serial.begin(9600);
-    
-    irrecv.enableIRIn();
-    
-    previousMicros = 0;
-}
-
-void loop()
-{
-    speed = setMaxMin(speed, 2 * speedMultiplier * (frontDist > 3), -2 * speedMultiplier * (rearDist > 3));
-    PT_SCHEDULE(runMotor(&ptRunMotor));
-    PT_SCHEDULE(readRemote(&ptReadRemote));
-    PT_SCHEDULE(findDistance(&ptFindDistance));
-}
-
-int findDistance(struct pt* pt)
-{
-    PT_BEGIN(pt);
-    for(;;)
-    {
-        digitalWrite(trigPinFront, LOW);
-        digitalWrite(trigPinRear, LOW);
-        delayMicroseconds(2);
-        
-        digitalWrite(trigPinFront, HIGH);
-        
-        digitalWrite(trigPinRear, HIGH);
-        delayMicroseconds(10);
-        
-        digitalWrite(trigPinFront, LOW);
-        digitalWrite(trigPinRear, LOW);
-        
-        frontDist = pulseIn(echoPinFront, HIGH)/29/2;
-        rearDist = pulseIn(echoPinRear, HIGH)/29/2;
-        
-        PT_SLEEP(pt, 100);
-    }
-    PT_END(pt);
-}
-
-int runMotor(struct pt* pt)
-{
-    PT_begin(pt);
-    for(;;)
-    {
-        //Set motor speed and run steppers
-        Stepper1.setSpeed(speed);
-        if (speed != 0)
-        {
-            Stepper1.step(1);
-        }
-        PT_YIELD(pt);
-    }
-    
-    PT_END(pt);
-}
-
-int readRemote(struct pt* pt)
-{
-    PT_BEGIN(pt);
-    for(;;)
-    {
-        int output = 0;
-        //Run decode operation on ir reciever
-        if(irrecv.decode(&results))
-        {
-            int value = results.value;
-            Serial.println(value);
-            //Return results based on hex code
-            switch(value)
-            {
-                case 0xFFE01:
-                speed--;
-                break;
-                
-                case 0xFF906:
-                speed++;
-                break;
-                
-                default:
-                break;
-            }
-            
-            irrecv.resume();
-        }
-        
-        PT_SLEEP(pt, 100);
-    }
-    
-    PT_END(pt);
-}
+unsigned long currentTime = 0;
+unsigned long previousDistanceTime, previousRemoteTime = 0;
+long distanceTimeInterval = 300;
+long remoteTimeInterval = 10;
 
 int setMaxMin(int x, int max, int min)
 {
@@ -148,5 +40,96 @@ int setMaxMin(int x, int max, int min)
     else
     {
         return x;
+    }
+}
+
+int findDistance()
+{
+    digitalWrite(trigPinFront, LOW);
+    digitalWrite(trigPinRear, LOW);
+    delayMicroseconds(2);
+    
+    digitalWrite(trigPinFront, HIGH);
+    
+    digitalWrite(trigPinRear, HIGH);
+    delayMicroseconds(10);
+    
+    digitalWrite(trigPinFront, LOW);
+    digitalWrite(trigPinRear, LOW);
+    
+    frontDist = pulseIn(echoPinFront, HIGH)/29/2;
+    rearDist = pulseIn(echoPinRear, HIGH)/29/2;
+}
+
+int runMotor()
+{
+    //Set motor speed and run steppers
+    Stepper1.setSpeed(speed);
+    if (speed != 0)
+    {
+        Stepper1.step(1);
+    }
+}
+
+int readRemote()
+{
+    int output = 0;
+    //Run decode operation on ir reciever
+    if(irrecv.decode(&results))
+    {
+        int value = results.value;
+        Serial.println(value);
+        //Return results based on hex code
+        switch(value)
+        {
+            case 0xFFE01:
+            speed--;
+            break;
+            
+            case 0xFF906:
+            speed++;
+            break;
+            
+            default:
+            break;
+        }
+        
+        irrecv.resume();
+    }
+}
+
+void setup()
+{
+    Stepper1.setSpeed(0);
+    
+    //Set Pin Modes
+    pinMode(trigPinFront, OUTPUT);
+    pinMode(trigPinRear, OUTPUT);
+    pinMode(echoPinFront, INPUT);
+    pinMode(echoPinRear, INPUT);
+    
+    //Open serial monitor and start ir receiver
+    Serial.begin(9600);
+    
+    irrecv.enableIRIn();
+}
+
+void loop()
+{
+    currentTime = millis();
+    
+    speed = setMaxMin(speed, 6*(frontDist > 3), -6*(rearDist > 3));
+    runMotor();
+    
+    if (distanceTimeInterval < (currentTime - previousDistanceTime))
+    {
+        previousDistanceTime = currentTime;
+        findDistance();
+    }
+    
+    if (remoteTimeInterval < (currentTime - previousRemoteTime))
+    {
+        previousRemoteTime = currentTime;
+        readRemote();
     }
 }
