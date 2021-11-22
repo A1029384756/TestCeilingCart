@@ -82,15 +82,15 @@ int readRemote()
         switch(value)
         {
             case 0xFFE01:
-            speed--;
-            break;
+                speed--;
+                break;
             
             case 0xFF906:
-            speed++;
-            break;
+                speed++;
+                break;
             
             default:
-            break;
+                break;
         }
         
         irrecv.resume();
